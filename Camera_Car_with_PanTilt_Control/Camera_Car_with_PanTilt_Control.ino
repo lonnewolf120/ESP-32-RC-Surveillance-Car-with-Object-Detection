@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <ESP32Servo.h>
-
+//#include < driver/ledc.h>
 #define PAN_PIN 14
 #define TILT_PIN 15
 
@@ -333,7 +333,7 @@ void onCarInputWebSocketEvent(AsyncWebSocket *server,
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
       moveCar(0);
-      ledcWrite(PWMLightChannel, 0); 
+      ledcWrite(LIGHT_PIN, 0); 
       panServo.write(90);
       tiltServo.write(90);       
       break;
@@ -356,11 +356,11 @@ void onCarInputWebSocketEvent(AsyncWebSocket *server,
         }
         else if (key == "Speed")
         {
-          ledcWrite(PWMSpeedChannel, valueInt);
+          ledcWrite(motorPins[RIGHT_MOTOR].pinEn, valueInt);
         }
         else if (key == "Light")
         {
-          ledcWrite(PWMLightChannel, valueInt);         
+          ledcWrite(LIGHT_PIN, valueInt);         
         }
         else if (key == "Pan")
         {
@@ -490,8 +490,8 @@ void setUpPinModes()
   tiltServo.attach(TILT_PIN);
 
   //Set up PWM
-  ledcSetup(PWMSpeedChannel, PWMFreq, PWMResolution);
-  ledcSetup(PWMLightChannel, PWMFreq, PWMResolution);
+  ledcAttach(motorPins[RIGHT_MOTOR].pinEn, PWMFreq, PWMResolution);
+  ledcAttach(LIGHT_PIN, PWMFreq, PWMResolution);
       
   for (int i = 0; i < motorPins.size(); i++)
   {
@@ -499,12 +499,12 @@ void setUpPinModes()
     pinMode(motorPins[i].pinIN1, OUTPUT);
     pinMode(motorPins[i].pinIN2, OUTPUT);  
     /* Attach the PWM Channel to the motor enb Pin */
-    ledcAttachPin(motorPins[i].pinEn, PWMSpeedChannel);
+    ledcAttachChannel(motorPins[i].pinEn, PWMFreq, PWMResolution, PWMSpeedChannel);
   }
   moveCar(STOP);
 
   pinMode(LIGHT_PIN, OUTPUT);    
-  ledcAttachPin(LIGHT_PIN, PWMLightChannel);
+  ledcAttachChannel(LIGHT_PIN, PWMFreq, PWMResolution,PWMLightChannel);
 }
 
 

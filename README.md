@@ -2,14 +2,14 @@
 
 ## Pin connections:
 
-| L298N | ESP32 |
-| ----- | ----- |
-| ENA   | IO2   |
-| IN1   | IO12  |
-| IN2   | IO13  |
-| IN4   | V0T   |
-| IN5   | V0R   |
-| ENB   | IO2   |
+| L298N | ESP32   |
+| ----- | ------- |
+| ENA   | IO2     |
+| IN1   | IO12    |
+| IN2   | IO13    |
+| IN4   | V0T/IO1 |
+| IN5   | V0R/IO3 |
+| ENB   | IO2     |
 
 | Pan Servo    | ESP32          |
 | ------------ | -------------- |
