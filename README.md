@@ -23,10 +23,12 @@
 | RED (5V)     | (POWER-SUPPLY) |
 | ORANGE (PWM) | IO15           |
 
-|     |     |
-| --- | --- |
-|     |     |
-|     |     |
-|     |     |
-|     |     |
-|     |     |
+| L298N | LEFT-MOTOR                 |
+| ----- | -------------------------- |
+| OUT3  | Left-sides of both motors  |
+| OUT4  | Right-sides of both motors |
+
+| L298N | RIGHT-MOTOR                |
+| ----- | -------------------------- |
+| OUT1  | Left-sides of both motors  |
+| OUT2  | Right-sides of both motors |
