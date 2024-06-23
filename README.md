@@ -7,8 +7,8 @@
 | ENA   | IO2   |
 | IN1   | IO12  |
 | IN2   | IO13  |
-| IN3   | IO0   |
-| IN4   | IO16  |
+| IN3   | IO27  |
+| IN4   | IO26  |
 | ENB   | IO2   |
 
 | Pan Servo    | ESP32          |
