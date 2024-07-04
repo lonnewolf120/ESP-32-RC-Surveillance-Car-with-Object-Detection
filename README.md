@@ -1,5 +1,9 @@
 # ESP-32-RC-Surveillance-Car-with-Object-Detection
 
+#Pinout:
+https://randomnerdtutorials.com/esp32-cam-ai-thinker-pinout/
+
+
 ## Pin connections:
 
 | L298N | ESP32 |
@@ -31,4 +35,4 @@
 | L298N | RIGHT-MOTOR                        |
 | ----- | ---------------------------------- |
 | OUT1  | Left-sides of both motors          |
-| OUT2  | Right-sides of both motors       k |
+| OUT2  | Right-sides of both motors		 |
