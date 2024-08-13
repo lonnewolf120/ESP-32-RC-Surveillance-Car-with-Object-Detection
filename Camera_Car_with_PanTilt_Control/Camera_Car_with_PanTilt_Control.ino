@@ -1,17 +1,10 @@
- #include "esp_camera.h"
+#include "esp_camera.h"
 #include <Arduino.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <iostream>
 #include <sstream>
-#include <ESP32Servo.h>
-//#include < driver/ledc.h>
-#define PAN_PIN 14
-#define TILT_PIN 15
-
-Servo panServo;
-Servo tiltServo;
 
 struct MOTOR_PINS
 {
@@ -22,8 +15,8 @@ struct MOTOR_PINS
 
 std::vector<MOTOR_PINS> motorPins = 
 {
-  {2, 12, 13}, //RIGHT_MOTOR Pins (EnA, IN1, IN2)
-  {2, 0, 16},  //LEFT_MOTOR  Pins (EnB, IN3, IN4)
+  {12, 13, 15},  //RIGHT_MOTOR Pins (EnA, IN1, IN2)
+  {12, 14, 2},  //LEFT_MOTOR  Pins (EnB, IN3, IN4)
 };
 #define LIGHT_PIN 4
 
@@ -77,7 +70,7 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style>
     .arrows {
-      font-size:30px;
+      font-size:40px;
       color:red;
     }
     td.button {
@@ -142,6 +135,9 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
   
   </head>
   <body class="noselect" align="center" style="background-color:white">
+     
+    <!--h2 style="color: teal;text-align:center;">Wi-Fi Camera &#128663; Control</h2-->
+    
     <table id="mainTable" style="width:400px;margin:auto;table-layout:fixed" CELLSPACING=10>
       <tr>
         <img id="cameraImage" src="" style="width:400px;height:250px"></td>
@@ -178,22 +174,6 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
           </div>
         </td>   
       </tr>
-      <tr>
-        <td style="text-align:left"><b>Pan:</b></td>
-        <td colspan=2>
-         <div class="slidecontainer">
-            <input type="range" min="0" max="180" value="90" class="slider" id="Pan" oninput='sendButtonInput("Pan",value)'>
-          </div>
-        </td>
-      </tr> 
-      <tr>
-        <td style="text-align:left"><b>Tilt:</b></td>
-        <td colspan=2>
-          <div class="slidecontainer">
-            <input type="range" min="0" max="180" value="90" class="slider" id="Tilt" oninput='sendButtonInput("Tilt",value)'>
-          </div>
-        </td>   
-      </tr>      
     </table>
   
     <script>
@@ -220,10 +200,10 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
         websocketCarInput = new WebSocket(webSocketCarInputUrl);
         websocketCarInput.onopen    = function(event)
         {
-          sendButtonInput("Speed", document.getElementById("Speed").value);
-          sendButtonInput("Light", document.getElementById("Light").value);
-          sendButtonInput("Pan", document.getElementById("Pan").value);
-          sendButtonInput("Tilt", document.getElementById("Tilt").value);                    
+          var speedButton = document.getElementById("Speed");
+          sendButtonInput("Speed", speedButton.value);
+          var lightButton = document.getElementById("Light");
+          sendButtonInput("Light", lightButton.value);
         };
         websocketCarInput.onclose   = function(event){setTimeout(initCarInputWebSocket, 2000);};
         websocketCarInput.onmessage = function(event){};        
@@ -333,9 +313,7 @@ void onCarInputWebSocketEvent(AsyncWebSocket *server,
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
       moveCar(0);
-      ledcWrite(LIGHT_PIN, 0); 
-      panServo.write(90);
-      tiltServo.write(90);       
+      ledcWrite(PWMLightChannel, 0);  
       break;
     case WS_EVT_DATA:
       AwsFrameInfo *info;
@@ -356,20 +334,12 @@ void onCarInputWebSocketEvent(AsyncWebSocket *server,
         }
         else if (key == "Speed")
         {
-          ledcWrite(motorPins[RIGHT_MOTOR].pinEn, valueInt);
+          ledcWrite(PWMSpeedChannel, valueInt);
         }
         else if (key == "Light")
         {
-          ledcWrite(LIGHT_PIN, valueInt);         
-        }
-        else if (key == "Pan")
-        {
-          panServo.write(valueInt);
-        }
-        else if (key == "Tilt")
-        {
-          tiltServo.write(valueInt);   
-        }             
+          ledcWrite(PWMLightChannel, valueInt);         
+        }     
       }
       break;
     case WS_EVT_PONG:
@@ -410,8 +380,8 @@ void onCameraWebSocketEvent(AsyncWebSocket *server,
 void setupCamera()
 {
   camera_config_t config;
-  config.ledc_channel = LEDC_CHANNEL_4;
-  config.ledc_timer = LEDC_TIMER_2;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
   config.pin_d0 = Y2_GPIO_NUM;
   config.pin_d1 = Y3_GPIO_NUM;
   config.pin_d2 = Y4_GPIO_NUM;
@@ -486,32 +456,29 @@ void sendCameraPicture()
 
 void setUpPinModes()
 {
-  panServo.attach(PAN_PIN);
-  tiltServo.attach(TILT_PIN);
-
   //Set up PWM
-  ledcAttach(motorPins[RIGHT_MOTOR].pinEn, PWMFreq, PWMResolution);
-  ledcAttach(LIGHT_PIN, PWMFreq, PWMResolution);
+  ledcSetup(PWMSpeedChannel, PWMFreq, PWMResolution);
+  ledcSetup(PWMLightChannel, PWMFreq, PWMResolution);
       
   for (int i = 0; i < motorPins.size(); i++)
   {
     pinMode(motorPins[i].pinEn, OUTPUT);    
     pinMode(motorPins[i].pinIN1, OUTPUT);
     pinMode(motorPins[i].pinIN2, OUTPUT);  
+
     /* Attach the PWM Channel to the motor enb Pin */
-    ledcAttachChannel(motorPins[i].pinEn, PWMFreq, PWMResolution, PWMSpeedChannel);
+    ledcAttachPin(motorPins[i].pinEn, PWMSpeedChannel);
   }
   moveCar(STOP);
 
   pinMode(LIGHT_PIN, OUTPUT);    
-  ledcAttachChannel(LIGHT_PIN, PWMFreq, PWMResolution,PWMLightChannel);
+  ledcAttachPin(LIGHT_PIN, PWMLightChannel);
 }
-
 
 void setup(void) 
 {
   setUpPinModes();
-  //Serial.begin(115200);
+  Serial.begin(115200);
 
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
@@ -539,5 +506,6 @@ void loop()
   wsCamera.cleanupClients(); 
   wsCarInput.cleanupClients(); 
   sendCameraPicture(); 
-  Serial.printf("SPIRam Total heap %d, SPIRam Free Heap %d\n", ESP.getPsramSize(), ESP.getFreePsram());
+  // Serial.printf()
+  // Serial.printf("SPIRam Total heap %d, SPIRam Free Heap %d\n", ESP.getPsramSize(), ESP.getFreePsram());
 }
