@@ -1,5 +1,17 @@
 # ESP-32-RC-Surveillance-Car-with-Object-Detection
 
+# Instructions to install ESP32 in the Arduino IDE
+
+go to the Preferences tab and enter this code in the 
+`Additional Boards Manager url:`
+
+`https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+
+
+
+#Pinout:
+https://randomnerdtutorials.com/esp32-cam-ai-thinker-pinout/
+
 ## Pin connections:
 
 | L298N | ESP32 |
@@ -31,4 +43,8 @@
 | L298N | RIGHT-MOTOR                        |
 | ----- | ---------------------------------- |
 | OUT1  | Left-sides of both motors          |
-| OUT2  | Right-sides of both motors       k |
+| OUT2  | Right-sides of both motors		 |
+
+
+# currently following tutorials
+

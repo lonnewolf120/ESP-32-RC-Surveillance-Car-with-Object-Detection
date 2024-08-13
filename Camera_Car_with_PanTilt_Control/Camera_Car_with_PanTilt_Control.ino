@@ -5,6 +5,14 @@
 #include <ESPAsyncWebServer.h>
 #include <iostream>
 #include <sstream>
+#include <ESP32Servo.h>
+//#include < driver/ledc.h>
+#define PAN_PIN 14
+#define TILT_PIN 15
+
+
+Servo panServo;
+Servo tiltServo;
 
 struct MOTOR_PINS
 {
@@ -20,12 +28,12 @@ std::vector<MOTOR_PINS> motorPins =
 };
 #define LIGHT_PIN 4
 
+// for Car control (not ESP32 pins)
 #define UP 1
 #define DOWN 2
 #define LEFT 3
 #define RIGHT 4
 #define STOP 0
-
 #define RIGHT_MOTOR 0
 #define LEFT_MOTOR 1
 
